@@ -1,50 +1,59 @@
 package com.jetbrains.kmpapp.di
 
-import com.jetbrains.kmpapp.data.InMemoryMuseumStorage
-import com.jetbrains.kmpapp.data.KtorMuseumApi
-import com.jetbrains.kmpapp.data.MuseumApi
-import com.jetbrains.kmpapp.data.MuseumRepository
-import com.jetbrains.kmpapp.data.MuseumStorage
-import com.jetbrains.kmpapp.screens.detail.DetailScreenModel
-import com.jetbrains.kmpapp.screens.list.ListScreenModel
+import com.jetbrains.kmpapp.interfaces.TestRepository
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.auth.Auth
+import io.ktor.client.plugins.auth.providers.BearerTokens
+import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.http.ContentType
+import io.ktor.client.plugins.logging.DEFAULT
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.core.context.startKoin
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
+import com.jetbrains.kmpapp.repository.TestRepositoryImpl
+import com.jetbrains.kmpapp.viewmodels.TestViewModel
 
-val dataModule = module {
+val appModule = module {
     single {
-        val json = Json { ignoreUnknownKeys = true }
         HttpClient {
+            install(Logging) {
+                logger = Logger.DEFAULT
+                level = LogLevel.ALL
+            }
+            install(Auth) {
+                bearer {
+                    loadTokens {
+                        BearerTokens("abc123", "xyz111")
+                    }
+                }
+            }
             install(ContentNegotiation) {
-                // TODO Fix API so it serves application/json
-                json(json, contentType = ContentType.Any)
+                json(
+                    Json {
+                        isLenient = true
+                        ignoreUnknownKeys = true
+                    })
             }
         }
     }
-
-    single<MuseumApi> { KtorMuseumApi(get()) }
-    single<MuseumStorage> { InMemoryMuseumStorage() }
-    single {
-        MuseumRepository(get(), get()).apply {
-            initialize()
-        }
+    single<TestRepository> {
+        TestRepositoryImpl(get())
     }
 }
-
 val screenModelsModule = module {
-    factoryOf(::ListScreenModel)
-    factoryOf(::DetailScreenModel)
+    factoryOf(::TestViewModel)
+//    factory { TestViewModel(get()) }
 }
 
 fun initKoin() {
     startKoin {
         modules(
-            dataModule,
+            appModule,
             screenModelsModule,
         )
     }

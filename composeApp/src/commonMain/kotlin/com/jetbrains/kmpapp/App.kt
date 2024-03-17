@@ -3,11 +3,14 @@ package com.jetbrains.kmpapp
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import cafe.adriel.voyager.navigator.Navigator
-import com.jetbrains.kmpapp.screens.list.ListScreen
+import cafe.adriel.voyager.transitions.SlideTransition
+import com.jetbrains.kmpapp.screens.HomeScreen
 
 @Composable
 fun App() {
     MaterialTheme {
-        Navigator(ListScreen)
+        Navigator(HomeScreen()) {
+            SlideTransition(it)
+        }
     }
 }

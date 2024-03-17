@@ -59,6 +59,12 @@ kotlin {
             implementation(libs.voyager.navigator)
             implementation(libs.voyager.koin)
             implementation(libs.moko.resources.compose)
+
+            implementation(libs.voyager.bottom.sheet.navigator)
+            implementation(libs.voyager.transitions)
+
+            implementation(libs.ktor.client.logging)
+            implementation(libs.ktor.client.auth)
         }
     }
 }
